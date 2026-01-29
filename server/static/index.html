@@ -1,57 +1,207 @@
 <!doctype html>
-<html lang="zh">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI短剧制作 MVP</title>
+    <title>AI短剧工厂（MVP）</title>
     <style>
-      body { font-family: ui-sans-serif, system-ui, -apple-system; margin: 24px; max-width: 980px; }
-      .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-      input, button, select { padding: 8px 10px; font-size: 14px; }
-      button { cursor: pointer; }
-      pre { background: #0b1020; color: #e6e6e6; padding: 12px; overflow: auto; border-radius: 8px; }
-      .card { border: 1px solid #ddd; border-radius: 10px; padding: 12px; margin-top: 12px; }
-      a { color: #0b5fff; }
-      .muted { color: #666; }
+      :root {
+        --bg: #0b1020;
+        --panel: rgba(255,255,255,.06);
+        --panel2: rgba(255,255,255,.04);
+        --text: rgba(255,255,255,.92);
+        --muted: rgba(255,255,255,.68);
+        --border: rgba(255,255,255,.12);
+        --brand: #7c5cff;
+        --brand2: #2dd4bf;
+        --danger: #ff6b6b;
+        --shadow: 0 12px 30px rgba(0,0,0,.35);
+        --radius: 14px;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: radial-gradient(1200px 800px at 10% 0%, rgba(124,92,255,.25), transparent 55%),
+                    radial-gradient(900px 600px at 90% 10%, rgba(45,212,191,.18), transparent 55%),
+                    var(--bg);
+        color: var(--text);
+        font-family: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Microsoft YaHei";
+      }
+      .container { max-width: 1100px; margin: 0 auto; padding: 22px; }
+      .topbar {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+      .brand {
+        display: flex; flex-direction: column; gap: 6px;
+      }
+      .brand h1 { margin: 0; font-size: 20px; letter-spacing: .2px; }
+      .brand p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.4; }
+      .badge {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 6px 10px;
+        border: 1px solid var(--border);
+        background: rgba(255,255,255,.05);
+        border-radius: 999px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 14px; }
+      @media (max-width: 920px) { .grid { grid-template-columns: 1fr; } }
+
+      .card {
+        border: 1px solid var(--border);
+        background: linear-gradient(180deg, var(--panel), var(--panel2));
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 14px;
+      }
+      .card h2 { margin: 0 0 10px 0; font-size: 14px; color: rgba(255,255,255,.88); }
+      .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+      label { color: var(--muted); font-size: 13px; }
+      input[type="number"], input[type="text"] {
+        background: rgba(255,255,255,.06);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: 12px;
+        padding: 10px 12px;
+        outline: none;
+        min-width: 110px;
+      }
+      input[type="checkbox"] { transform: scale(1.1); }
+
+      button {
+        border: 1px solid var(--border);
+        background: rgba(255,255,255,.06);
+        color: var(--text);
+        border-radius: 12px;
+        padding: 10px 12px;
+        cursor: pointer;
+        transition: transform .06s ease, background .15s ease;
+      }
+      button.primary {
+        border: 0;
+        background: linear-gradient(135deg, var(--brand), var(--brand2));
+        box-shadow: 0 10px 20px rgba(124,92,255,.22);
+        font-weight: 600;
+      }
+      button:hover { background: rgba(255,255,255,.09); }
+      button.primary:hover { filter: brightness(1.05); }
+      button:active { transform: translateY(1px); }
+
+      .hint { margin: 10px 0 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+      .kpi {
+        display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px;
+      }
+      @media (max-width: 920px) { .kpi { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+      .kpi .tile {
+        border: 1px solid var(--border);
+        background: rgba(0,0,0,.18);
+        border-radius: 12px;
+        padding: 10px;
+      }
+      .tile .label { color: var(--muted); font-size: 12px; }
+      .tile .value { margin-top: 6px; font-size: 16px; font-weight: 700; }
+
+      a { color: #9aa8ff; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+
+      pre {
+        background: rgba(0,0,0,.28);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        overflow: auto;
+        color: rgba(255,255,255,.86);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+      ul { margin: 0; padding-left: 18px; }
+      .split { display: grid; grid-template-columns: 1fr; gap: 12px; }
+      .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+      .toolbar .left { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+      .toast {
+        margin-top: 10px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: rgba(255,255,255,.05);
+        color: var(--muted);
+        display: none;
+      }
+      .toast.error { border-color: rgba(255,107,107,.35); color: rgba(255,220,220,.92); }
     </style>
   </head>
   <body>
-    <h1>AI短剧制作 MVP</h1>
-    <p class="muted">单机规则生成（方案1）：outline → script → shotlist(250镜头/15min/6场景/5条video) → package（不对接ComfyUI）</p>
-
-    <div class="card">
-      <div class="row">
-        <label>Episode：</label>
-        <input id="episode" type="number" min="1" value="1" />
-        <label>Force overwrite</label>
-        <input id="force" type="checkbox" />
-        <button id="btnGen">生成/更新这一集</button>
-        <button id="btnRefresh">刷新列表</button>
+    <div class="container">
+      <div class="topbar">
+        <div class="brand">
+          <h1>AI短剧工厂（MVP）</h1>
+          <p>
+            规则生成流水线（方案1）：<b>大纲</b> → <b>剧本</b> → <b>镜头表</b>（250镜头/15分钟/6场景/5条Video） → <b>打包</b>（输出JSONL任务，暂不对接ComfyUI）
+          </p>
+          <div class="row" style="margin-top: 6px;">
+            <span class="badge">抖音 9:16 · 1080×1920 · 20fps</span>
+            <span class="badge">单卡4090云（视频镜头预算=5）</span>
+          </div>
+        </div>
+        <div class="badge">当前版本：MVP（可迭代）</div>
       </div>
-      <p class="muted">生成后会在 <code>episodes/epXXXX/</code> 下产出文本资产 + prompts JSONL。</p>
-    </div>
 
-    <div class="card">
-      <h3>Episodes</h3>
-      <div id="episodes"></div>
-    </div>
+      <div class="grid">
+        <div class="card">
+          <h2>生成控制</h2>
+          <div class="toolbar">
+            <div class="left">
+              <label>集数（Episode）</label>
+              <input id="episode" type="number" min="1" value="1" />
+              <label style="display:flex; gap:8px; align-items:center;">
+                <input id="force" type="checkbox" />
+                覆盖已有文件（Force）
+              </label>
+              <button class="primary" id="btnGen">生成 / 更新本集</button>
+              <button id="btnRefresh">刷新列表</button>
+            </div>
+          </div>
+          <p class="hint">生成后会在 <code>episodes/epXXXX/</code> 产出：outline.md、script.md、shotlist.csv、prompts/*.jsonl、delivery/*.md。</p>
+          <div id="toast" class="toast"></div>
+        </div>
 
-    <div class="card">
-      <h3>Shotlist Summary</h3>
-      <div class="row">
-        <button id="btnSummary">查看当前 Episode 概览</button>
+        <div class="card">
+          <h2>本集概览（Shotlist）</h2>
+          <div class="row" style="margin-bottom: 10px;">
+            <button id="btnSummary">刷新概览</button>
+          </div>
+          <div class="kpi">
+            <div class="tile"><div class="label">总镜头</div><div class="value" id="kShots">-</div></div>
+            <div class="tile"><div class="label">Video镜头</div><div class="value" id="kVideo">-</div></div>
+            <div class="tile"><div class="label">总时长（秒）</div><div class="value" id="kSec">-</div></div>
+            <div class="tile"><div class="label">场景数</div><div class="value" id="kScenes">-</div></div>
+          </div>
+          <pre id="summary" style="margin-top: 10px;"></pre>
+        </div>
       </div>
-      <pre id="summary"></pre>
-    </div>
 
-    <div class="card">
-      <h3>Files</h3>
-      <div class="row">
-        <button id="btnFiles">列出当前 Episode 文件</button>
+      <div class="grid" style="margin-top: 14px;">
+        <div class="card">
+          <h2>已生成的 Episodes</h2>
+          <div id="episodes" class="split"></div>
+        </div>
+        <div class="card">
+          <h2>文件浏览</h2>
+          <div class="row" style="margin-bottom: 10px;">
+            <button id="btnFiles">列出本集文件</button>
+          </div>
+          <div id="files"></div>
+          <h2 style="margin-top: 14px;">内容预览</h2>
+          <pre id="preview"></pre>
+        </div>
       </div>
-      <div id="files"></div>
-      <h4>File Preview</h4>
-      <pre id="preview"></pre>
     </div>
 
     <script>
@@ -63,6 +213,15 @@
         return res.text();
       }
 
+      function toast(msg, kind) {
+        const el = document.getElementById('toast');
+        el.className = 'toast' + (kind === 'error' ? ' error' : '');
+        el.textContent = msg;
+        el.style.display = 'block';
+        clearTimeout(window.__toastTimer);
+        window.__toastTimer = setTimeout(() => (el.style.display = 'none'), 3800);
+      }
+
       function curEp() {
         return Number(document.getElementById('episode').value || 1);
       }
@@ -72,13 +231,13 @@
         const el = document.getElementById('episodes');
         el.innerHTML = '';
         if (!items.length) {
-          el.textContent = '暂无';
+          el.textContent = '暂无。先点击“生成 / 更新本集”。';
           return;
         }
         const ul = document.createElement('ul');
         for (const it of items) {
           const li = document.createElement('li');
-          li.textContent = `${it.id} — ${it.path}`;
+          li.innerHTML = `<b>${it.id}</b> <span style="color: rgba(255,255,255,.6)">— ${it.path}</span>`;
           ul.appendChild(li);
         }
         el.appendChild(ul);
@@ -87,18 +246,33 @@
       async function generate() {
         const ep = curEp();
         const force = document.getElementById('force').checked;
+        toast('正在生成中…（规则生成通常很快）');
         await api(`/api/episodes/${ep}/generate`, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ steps: ['outline','script','shotlist','package'], force })
         });
+        toast('生成完成：已产出 outline/script/shotlist/prompts');
         await refreshEpisodes();
+        await summary();
       }
 
       async function summary() {
         const ep = curEp();
-        const s = await api(`/api/shotlist/summary?episode=${ep}`);
-        document.getElementById('summary').textContent = JSON.stringify(s, null, 2);
+        try {
+          const s = await api(`/api/shotlist/summary?episode=${ep}`);
+          document.getElementById('summary').textContent = JSON.stringify(s, null, 2);
+          document.getElementById('kShots').textContent = s.shots;
+          document.getElementById('kVideo').textContent = s.video;
+          document.getElementById('kSec').textContent = s.total_sec;
+          document.getElementById('kScenes').textContent = s.scenes;
+        } catch (e) {
+          document.getElementById('summary').textContent = '（尚未生成镜头表）';
+          document.getElementById('kShots').textContent = '-';
+          document.getElementById('kVideo').textContent = '-';
+          document.getElementById('kSec').textContent = '-';
+          document.getElementById('kScenes').textContent = '-';
+        }
       }
 
       async function listFiles() {
@@ -114,8 +288,12 @@
           a.textContent = f;
           a.onclick = async (e) => {
             e.preventDefault();
-            const txt = await api(`/api/file?path=${encodeURIComponent(f)}`);
-            document.getElementById('preview').textContent = txt;
+            try {
+              const txt = await api(`/api/file?path=${encodeURIComponent(f)}`);
+              document.getElementById('preview').textContent = txt;
+            } catch (err) {
+              toast('读取失败：' + String(err), 'error');
+            }
           };
           li.appendChild(a);
           ul.appendChild(li);
@@ -124,11 +302,12 @@
       }
 
       document.getElementById('btnRefresh').onclick = refreshEpisodes;
-      document.getElementById('btnGen').onclick = generate;
-      document.getElementById('btnSummary').onclick = summary;
-      document.getElementById('btnFiles').onclick = listFiles;
+      document.getElementById('btnGen').onclick = () => generate().catch(e => toast(String(e), 'error'));
+      document.getElementById('btnSummary').onclick = () => summary().catch(e => toast(String(e), 'error'));
+      document.getElementById('btnFiles').onclick = () => listFiles().catch(e => toast(String(e), 'error'));
 
       refreshEpisodes();
+      summary();
     </script>
   </body>
 </html>
