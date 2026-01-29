@@ -1,0 +1,15 @@
+episode: 1
+title_working: "废柴下井"
+purpose: "建立主角受辱+机缘出现；让仙箓首次露面并立下代价规则；结尾第一次正面顶撞反派。"
+required:
+  characters: ["C1", "C2"]
+  locations: ["L1", "L3"]
+  props: ["C1_jade_pendant", "C2_sword_tassel", "lost_artifact"]
+  plot_points:
+    - "开场10秒内强冲突"
+    - "中段出现机缘与规则（残缺仙箓）"
+    - "结尾强悬念（必见血光）"
+constraints:
+  runtime_minutes: 15
+  platform: douyin
+  video_clips_per_episode_target: 5

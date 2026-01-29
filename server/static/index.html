@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI短剧制作 MVP</title>
+    <style>
+      body { font-family: ui-sans-serif, system-ui, -apple-system; margin: 24px; max-width: 980px; }
+      .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+      input, button, select { padding: 8px 10px; font-size: 14px; }
+      button { cursor: pointer; }
+      pre { background: #0b1020; color: #e6e6e6; padding: 12px; overflow: auto; border-radius: 8px; }
+      .card { border: 1px solid #ddd; border-radius: 10px; padding: 12px; margin-top: 12px; }
+      a { color: #0b5fff; }
+      .muted { color: #666; }
+    </style>
+  </head>
+  <body>
+    <h1>AI短剧制作 MVP</h1>
+    <p class="muted">单机规则生成（方案1）：outline → script → shotlist(250镜头/15min/6场景/5条video) → package（不对接ComfyUI）</p>
+
+    <div class="card">
+      <div class="row">
+        <label>Episode：</label>
+        <input id="episode" type="number" min="1" value="1" />
+        <label>Force overwrite</label>
+        <input id="force" type="checkbox" />
+        <button id="btnGen">生成/更新这一集</button>
+        <button id="btnRefresh">刷新列表</button>
+      </div>
+      <p class="muted">生成后会在 <code>episodes/epXXXX/</code> 下产出文本资产 + prompts JSONL。</p>
+    </div>
+
+    <div class="card">
+      <h3>Episodes</h3>
+      <div id="episodes"></div>
+    </div>
+
+    <div class="card">
+      <h3>Shotlist Summary</h3>
+      <div class="row">
+        <button id="btnSummary">查看当前 Episode 概览</button>
+      </div>
+      <pre id="summary"></pre>
+    </div>
+
+    <div class="card">
+      <h3>Files</h3>
+      <div class="row">
+        <button id="btnFiles">列出当前 Episode 文件</button>
+      </div>
+      <div id="files"></div>
+      <h4>File Preview</h4>
+      <pre id="preview"></pre>
+    </div>
+
+    <script>
+      async function api(path, opts) {
+        const res = await fetch(path, opts);
+        if (!res.ok) throw new Error(await res.text());
+        const ct = res.headers.get('content-type') || '';
+        if (ct.includes('application/json')) return res.json();
+        return res.text();
+      }
+
+      function curEp() {
+        return Number(document.getElementById('episode').value || 1);
+      }
+
+      async function refreshEpisodes() {
+        const items = await api('/api/episodes');
+        const el = document.getElementById('episodes');
+        el.innerHTML = '';
+        if (!items.length) {
+          el.textContent = '暂无';
+          return;
+        }
+        const ul = document.createElement('ul');
+        for (const it of items) {
+          const li = document.createElement('li');
+          li.textContent = `${it.id} — ${it.path}`;
+          ul.appendChild(li);
+        }
+        el.appendChild(ul);
+      }
+
+      async function generate() {
+        const ep = curEp();
+        const force = document.getElementById('force').checked;
+        await api(`/api/episodes/${ep}/generate`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ steps: ['outline','script','shotlist','package'], force })
+        });
+        await refreshEpisodes();
+      }
+
+      async function summary() {
+        const ep = curEp();
+        const s = await api(`/api/shotlist/summary?episode=${ep}`);
+        document.getElementById('summary').textContent = JSON.stringify(s, null, 2);
+      }
+
+      async function listFiles() {
+        const ep = curEp();
+        const files = await api(`/api/episodes/${ep}/files`);
+        const el = document.getElementById('files');
+        el.innerHTML = '';
+        const ul = document.createElement('ul');
+        for (const f of files) {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = '#';
+          a.textContent = f;
+          a.onclick = async (e) => {
+            e.preventDefault();
+            const txt = await api(`/api/file?path=${encodeURIComponent(f)}`);
+            document.getElementById('preview').textContent = txt;
+          };
+          li.appendChild(a);
+          ul.appendChild(li);
+        }
+        el.appendChild(ul);
+      }
+
+      document.getElementById('btnRefresh').onclick = refreshEpisodes;
+      document.getElementById('btnGen').onclick = generate;
+      document.getElementById('btnSummary').onclick = summary;
+      document.getElementById('btnFiles').onclick = listFiles;
+
+      refreshEpisodes();
+    </script>
+  </body>
+</html>

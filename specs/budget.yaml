@@ -1,0 +1,19 @@
+platform: douyin
+aspect_ratio: "9:16"
+resolution_delivery: "1080x1920"
+fps: 20
+
+strategy:
+  name: "A-short-clips-fast-cut"
+  description: "精选视频镜头 + 分镜图动效合成"
+
+per_episode:
+  runtime_minutes: 15
+  total_shots_target: 250
+  video_clips_target: 5
+  video_clip_duration_sec: 3
+  storyboard_frames_target: 245
+
+rendering_policy:
+  video_native_resolution_preferred: "720x1280"
+  upscale_to_delivery: true

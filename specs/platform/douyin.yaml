@@ -1,0 +1,14 @@
+platform: douyin
+video:
+  aspect_ratio: "9:16"
+  resolution_preferred: "1080x1920"
+  fps: 20
+narrative:
+  hook_seconds: 10
+  micro_hooks_every_seconds: 60
+  cliffhanger_required: true
+content_risk:
+  avoid_topics: ["涉政", "涉黄", "未成年人不当", "违法犯罪细节教程", "真实人物肖像侵权"]
+metadata:
+  title_style: ["冲突型", "反转型", "情绪型"]
+  cover_style: ["大字标题", "人物特写", "强情绪"]
